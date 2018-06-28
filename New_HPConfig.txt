@@ -1,0 +1,309 @@
+English
+;
+;     Settings file originally created by BIOS Config Utility
+;     Version:3.0.13.1
+;     Date:2018.06.28
+;
+Language
+	*English
+	Francais
+	Espanol
+	Deutsch
+	Italiano
+	Dansk
+	Suomi
+	Nederlands
+	Norsk
+	Portugues
+	Svenska
+	Japanese
+	Simplified Chinese
+Manufacturer (ReadOnly)
+	HP
+Product Name (ReadOnly)
+	OMEN X by HP Desktop PC 900-0XX
+SKU Number (ReadOnly)
+	X3V89AV
+Serial Number (ReadOnly)
+	5CC6440239
+Asset Tag (ReadOnly)
+	
+Ownership Tag (ReadOnly)
+	
+Born on Date (ReadOnly)
+	11/17/2016
+System Board ID (ReadOnly)
+	81B6
+System Board CT Number (ReadOnly)
+	PFMHT0AP14308Z
+BIOS Revision (ReadOnly)
+	81B6 vF.12
+BIOS Date (ReadOnly)
+	06/14/2017
+Processor Type (ReadOnly)
+	Intel(R) Core(TM) i7-6700K CPU @ 4.00GHz
+Processor Speed (ReadOnly)
+	4000 MHz
+Memory Size (ReadOnly)
+	32768 MB DDR4 / 2133 MHz / Dual Channel
+Set Time (hh:mm)
+	15:09
+Set Day (mm/dd/yyyy)
+	06/21/2018
+Default Setup
+	*None
+	Save Current Settings as Default
+	Restore Factory Settings as Default
+Apply Defaults and Exit
+	*Disable
+	Enable
+Stringent Password (ReadOnly)
+	*Disable
+	Enable
+Sata Emulation
+	*AHCI
+	RAID
+UEFI Boot Sources
+	Windows Boot Manager
+	USB Floppy/CD
+	USB Hard Drive
+	ATAPI CD/DVD Drive
+	UEFI: IPv4 Realtek PCIe GBE Family Controller
+	UEFI: IPv6 Realtek PCIe GBE Family Controller
+Legacy Boot Sources
+	UEFI:CD/DVD Drive Disabled
+	UEFI:Removable Device Disabled
+	UEFI:Network Device Disabled
+System Audio
+	Device hidden
+	*Device available
+Network Controller
+	Device hidden
+	*Device available
+SATA1
+	Device hidden
+	*Device available
+SATA2
+	Device hidden
+	*Device available
+SATA3
+	Device hidden
+	*Device available
+SATA4
+	Device hidden
+	*Device available
+SATA5
+	Device hidden
+	*Device available
+Front USB Ports
+	Disable
+	*Enable
+Rear USB Ports
+	Disable
+	*Enable
+Usb Port 1
+	Disable
+	*Enable
+Usb Port 2
+	Disable
+	*Enable
+Usb Port 3
+	Disable
+	*Enable
+Usb Port 4
+	Disable
+	*Enable
+Usb Port 5
+	Disable
+	*Enable
+Usb Port 6
+	Disable
+	*Enable
+Usb Port 7
+	Disable
+	*Enable
+Usb Port 8
+	Disable
+	*Enable
+Usb Port 9
+	Disable
+	*Enable
+Usb Port 10
+	Disable
+	*Enable
+Usb Port 11
+	Disable
+	*Enable
+PCI Express x16 Slot 1
+	Disable
+	*Enable
+PCI Express x8 Slot 2
+	Disable
+	*Enable
+Mini Card Slot
+	Disable
+	*Enable
+M.2 Card Slot
+	Disable
+	*Enable
+Network Boot
+	*Enable
+	Disable
+Product Name
+	OMEN X by HP Desktop PC 900-0XX
+Serial Number
+	5CC6440239
+UUID
+	48461A35-AC06-4730-05AA-729DC63A0D72
+SKU Number
+	X3V89AV
+Family Name (ReadOnly)
+	103C_53316J
+System Family
+	G=D
+Asset Tag
+	
+Ownership Tag
+	
+Feature Byte
+	3E3H3N3Q4C4h6Z6b7T7W7jaBaHapaqasaub7bAbhcbdUdXdpdqfdff.r3
+Build ID
+	16WW3TRT601#SABA#DABA
+System Board CT Number
+	PFMHT0AP14308Z
+Data Execution Prevention
+	Disable
+	*Enable
+Virtualization Technology (VTx/VTd)
+	Disable
+	*Enable
+TPM Device
+	Hidden
+	*Available
+TPM State
+	Disable
+	*Enable
+Clear TPM
+	*No
+	Yes
+TPM Reset to Factory Defaults
+	*No
+	Yes
+TPM Version
+	d1.2
+	d2.0
+	*f2.0
+Restore Security Defaults
+	*No
+	Yes
+Legacy Support
+	Enable
+	*Disable
+Secure Boot
+	*Enable
+	Disable
+Secure Boot Keys
+	Clear
+	*HP
+	Custom
+Fast Boot
+	*Enable
+	Disable
+Cover Removal Sensor
+	*Disable
+	Notify User
+Runtime Power Management
+	Disable
+	*Enable
+Idle Power Savings
+	Normal
+	*Extended
+SATA Power Management
+	Disable
+	*Enable
+S4/S5 Wake on LAN
+	*Disable
+	Enable
+CPU Fan Check
+	Disable
+	*Enable
+System Fan Check
+	*Disable
+	Enable
+POST Messages
+	*Disable
+	Enable
+After Power Loss
+	*Off
+	On
+	Previous State
+POST Delay (in seconds)
+	*None
+	5
+	10
+	15
+	20
+	60
+Remote Wakeup Boot Source
+	Remote Server
+	*Local Hard Drive
+Power on Sunday
+	*Disable
+	Enable
+Power on Monday
+	*Disable
+	Enable
+Power on Tuesday
+	*Disable
+	Enable
+Power on Wednesday
+	*Disable
+	Enable
+Power on Thursday
+	*Disable
+	Enable
+Power on Friday
+	*Disable
+	Enable
+Power on Saturday
+	*Disable
+	Enable
+BIOS Power-On Time (hh:mm)
+	00:00
+PCI SERR# Generation
+	Disable
+	*Enable
+PCI VGA Palette Snooping
+	*Disable
+	Enable
+Num Lock State at Power-On
+	*On
+	Off
+Multi-Processor
+	*Enable
+	Disable
+Hyper-Threading
+	Disable
+	*Enable
+Integrated Video
+	*Disable
+	Enable
+Processor Frequency Multiplier
+	40
+Integrated Audio
+	*Disable
+	Enable
+NIC PXE Option ROM Download
+	*Enable
+	Disable
+Manufacturing Programming Mode
+	Unlock
+	*Lock
+MS Digital Marker
+	010000000000000001000000000000001D000000504E4357522D504833484D2D3236544A512D39444B54372D3934523746
+PIN Load Defaults
+	*No
+	Yes
+Clear Event Log
+	*No
+	Yes
