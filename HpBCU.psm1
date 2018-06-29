@@ -33,7 +33,10 @@ function Set-BiosData {
         [string] $Section,
 
         [Parameter(Mandatory=$True)]
-        [string] $Value
+        [string] $Value,
+
+        [Parameter(Mandatory=$False)]
+        [int32] $Order
     )
 
     $biosData = Get-BiosData -ConfigFile $ConfigFile
@@ -70,16 +73,44 @@ Function Get-BiosData {
 		
 		switch -wildcard ($line) {
 			"`t*" 	{ 
-                $biosHash[$section] += ($line.replace("`t", ''))
+                #$biosHash[$section] += ($line.replace("`t", ''))
+                $value = ($line.replace("`t", ''))
+                
+				if ($value -match "\*.*"){
+					$biosHash[$section].data.Add($value.Substring(1), $true)
+				} else {
+					$biosHash[$section].data.Add($value, $false)
+				}
  			}
 			";*" 	{ 
 				#write-output "Comment: $Line"
 				$biosHash[$line] = $null
 			}
-			default 	{ 	
+			default 	{
+
+                # Get the data type of the last section
+                if ($section) {
+                    if ($biosHash[$section].data.count -eq 1){
+                        $biosHash[$section].type = 'string'
+                    } else {
+                        if ($biosHash[$section].data.values -contains $true){
+                            $biosHash[$section].type = 'multipleChoice'
+                        } else {
+                            $biosHash[$section].type = 'orderedList'
+                        }
+                    }
+                }
 				$section = $Line
-	            $biosHash[$section] = @()
-	            $CommentCount = 0
+                $biosHash[$section] = @{
+					'type' = $null;
+					'data' = @{};
+					'read-only' = $false
+				}
+
+				if ($section -like "*(ReadOnly)"){
+					$biosHash[$section].'read-only' = $true
+				}
+	           
 			}
 		}
 	}
