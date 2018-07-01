@@ -46,13 +46,36 @@ function Set-BiosData {
     } elseif ($biosData[$Section]){
         if ($biosData[$section].type -eq 'string'){       
             $oldKey = $biosData['Asset Tag'].data.Keys | Select-Object -First 1
-            #$biosData['Asset Tag'].data.Remove($oldKey)
-           # $biosData['Asset Tag'].data.Add($Value, $false)
+            $biosData['Asset Tag'].data.Remove($oldKey)
+            $biosData['Asset Tag'].data.Add($Value, $false)
         }
     } else {
         write-error "Section ""$Section"" not found"
     }
-    $biosData
+    Write-BiosData -BiosData $biosData -ConfigFile $ConfigFile
+}
+
+function Write-BiosData {
+    param (
+        [Parameter(Mandatory=$True)]
+        [string] $ConfigFile,
+
+        [Parameter(Mandatory=$True)]
+        [System.Collections.Specialized.OrderedDictionary] $BiosData
+    )
+
+    Try {
+        Remove-Item -Path $ConfigFile -ErrorAction Stop
+    } Catch {
+        throw "Unable to delete ""$ConfigFile"""
+    }
+
+    foreach ($Section in $BiosData.GetEnumerator().Name){
+            $Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+        foreach ($item in $BiosData[$Section].data.keys){
+            "`t$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+        }
+    }
 }
 Function Get-BiosData {
     param (
@@ -70,10 +93,8 @@ Function Get-BiosData {
 	$biosData = Get-Content $ConfigFile
 	
 	foreach ($line in ($biosData | % {$_.replace('`t','') }) ) {
-		### write-host $line
 		switch -wildcard ($line) {
 			"`t*" 	{ 
-                #$biosHash[$section] += ($line.replace("`t", ''))
                 $value = ($line.replace("`t", ''))
                 
 				if ($value -match "\*.*"){
@@ -83,18 +104,12 @@ Function Get-BiosData {
 				}
  			}
 			";*" 	{ 
-				#write-output "Comment: $Line"
 				$biosHash[$line] = $null
 			}
 			default {
                 $lastSection = $section
                 $section = $line
                 
-                <#$biosHash[$section] = ([ordered]@{
-					'type' = $null;
-					'data' = ([ordered]@{});
-					'read-only' = $false
-                })#>
                 $biosHash.Add($section, 
                     ([ordered]@{
                         'type' = $null;
@@ -111,16 +126,10 @@ Function Get-BiosData {
                         if ($biosHash[$lastSection].data.values -contains $true){
                             $biosHash[$lastSection].type = 'multipleChoice'
                         } else {
-                            #write-host "Section: $section"
-                            #write-host "Item: $($biosHash[$section].type)"
-                            $temp = $biosHash[$lastSection]
                             $biosHash[$lastSection].type = 'orderedList'
                         }
                     }
-                }
-                
-                #$section = $Line
-                
+                }             
 
 				if ($section -like "*(ReadOnly)"){
 					$biosHash[$lastSection].'read-only' = $true
