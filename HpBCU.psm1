@@ -73,7 +73,11 @@ function Write-BiosData {
     foreach ($Section in $BiosData.GetEnumerator().Name){
             $Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
         foreach ($item in $BiosData[$Section].data.keys){
-            "`t$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+            if ($BiosData[$Section].data.$item) {
+                "`t`*$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+            } else {
+                "`t$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+            }
         }
     }
 }
@@ -104,7 +108,8 @@ Function Get-BiosData {
 				}
  			}
 			";*" 	{ 
-				$biosHash[$line] = $null
+                #$biosHash[$line] = $null
+                $biosHash.Add($line, $false)
 			}
 			default {
                 $lastSection = $section

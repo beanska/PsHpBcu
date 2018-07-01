@@ -2,7 +2,7 @@ English
 ;
 ;     Settings file originally created by BIOS Config Utility
 ;     Version:3.0.13.1
-;     Date:2018.06.28
+;     Date:2018.07.01
 ;
 Language
 	*English
