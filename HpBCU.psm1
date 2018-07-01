@@ -39,26 +39,20 @@ function Set-BiosData {
         [int32] $Order
     )
 
-    $biosData = Get-BiosData -ConfigFile $ConfigFile
+    $biosData = Get-BiosData -ConfigFile $ConfigFile -debug
 
-    if ($biosData.$Section){
-        if ($biosData.$Section.length -gt 1){
-            #$biosData.$Section | ForEach-Object { $_ -like "\**"}
-            $selected = $biosData.$Section -match "\*.*"
-            if ("\*$($value)" -eq $selected) {
-                Write-Information "The correct value ""$value"" is already selected"
-            }
-        } else {
-
+    if ($biosData[$Section].'read-only'){
+        write-error "Section ""$Section"" is read only."
+    } elseif ($biosData[$Section]){
+        if ($biosData[$section].type -eq 'string'){       
+            $oldKey = $biosData['Asset Tag'].data.Keys | Select-Object -First 1
+            #$biosData['Asset Tag'].data.Remove($oldKey)
+           # $biosData['Asset Tag'].data.Add($Value, $false)
         }
-        
-        #if (){
-
-        #}
     } else {
         write-error "Section ""$Section"" not found"
     }
-
+    $biosData
 }
 Function Get-BiosData {
     param (
@@ -66,11 +60,17 @@ Function Get-BiosData {
         [string] $ConfigFile
     )
 
-	$biosHash = [ordered]@{}
+    $section = $null
+
+    if (!(test-path $ConfigFile)){
+        throw "Config file ""$ConfigFile"" not found"
+    }
+
+    $biosHash = ([ordered]@{})
 	$biosData = Get-Content $ConfigFile
 	
 	foreach ($line in ($biosData | % {$_.replace('`t','') }) ) {
-		
+		### write-host $line
 		switch -wildcard ($line) {
 			"`t*" 	{ 
                 #$biosHash[$section] += ($line.replace("`t", ''))
@@ -86,36 +86,66 @@ Function Get-BiosData {
 				#write-output "Comment: $Line"
 				$biosHash[$line] = $null
 			}
-			default 	{
-
+			default {
+                $lastSection = $section
+                $section = $line
+                
+                <#$biosHash[$section] = ([ordered]@{
+					'type' = $null;
+					'data' = ([ordered]@{});
+					'read-only' = $false
+                })#>
+                $biosHash.Add($section, 
+                    ([ordered]@{
+                        'type' = $null;
+                        'data' = ([ordered]@{});
+                        'read-only' = $false
+                    })
+                )
+                
                 # Get the data type of the last section
-                if ($section) {
-                    if ($biosHash[$section].data.count -eq 1){
-                        $biosHash[$section].type = 'string'
+                if ($lastSection) {
+                    if ($biosHash[$lastSection].data.count -eq 1){
+                        $biosHash[$lastSection].type = 'string'
                     } else {
-                        if ($biosHash[$section].data.values -contains $true){
-                            $biosHash[$section].type = 'multipleChoice'
+                        if ($biosHash[$lastSection].data.values -contains $true){
+                            $biosHash[$lastSection].type = 'multipleChoice'
                         } else {
-                            $biosHash[$section].type = 'orderedList'
+                            #write-host "Section: $section"
+                            #write-host "Item: $($biosHash[$section].type)"
+                            $temp = $biosHash[$lastSection]
+                            $biosHash[$lastSection].type = 'orderedList'
                         }
                     }
                 }
-				$section = $Line
-                $biosHash[$section] = @{
-					'type' = $null;
-					'data' = @{};
-					'read-only' = $false
-				}
+                
+                #$section = $Line
+                
 
 				if ($section -like "*(ReadOnly)"){
-					$biosHash[$section].'read-only' = $true
+					$biosHash[$lastSection].'read-only' = $true
 				}
 	           
 			}
 		}
 	}
-	
-	return $biosHash
+    
+    return $biosHash
+}
+
+function Show-HpBcu {
+    param (
+        [Parameter(Mandatory=$True)]
+        [System.Collections.Specialized.OrderedDictionary] $BiosData
+    )
+
+    #foreach ($Section in $BiosData.Keys){
+    foreach ($Section in $BiosData.GetEnumerator().Name){
+            write-host "$Section"
+        foreach ($item in $BiosData[$Section].data.keys){
+            write-host "`t$($item)"
+        }
+    }
 }
 function Export-HpBcu {
     [cmdletbinding()]
