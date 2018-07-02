@@ -1,4 +1,4 @@
-
+ 
 <#
 .SYNOPSIS
 Generates the folder and file structure needed to create a new Powershell module.
@@ -71,7 +71,11 @@ function Write-BiosData {
     }
 
     foreach ($Section in $BiosData.GetEnumerator().Name){
-            $Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+            if ($Section -like "Comment_*") {
+                $BiosData.$Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+            } else {
+                $Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+            }
         foreach ($item in $BiosData[$Section].data.keys){
             if ($BiosData[$Section].data.$item) {
                 "`t`*$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
@@ -87,7 +91,8 @@ Function Get-BiosData {
         [string] $ConfigFile
     )
 
-    $section = $null
+    [string] $section = $null
+    [int] $comment = 0
 
     if (!(test-path $ConfigFile)){
         throw "Config file ""$ConfigFile"" not found"
@@ -108,8 +113,8 @@ Function Get-BiosData {
 				}
  			}
 			";*" 	{ 
-                #$biosHash[$line] = $null
-                $biosHash.Add($line, $false)
+                $biosHash.Add("Comment_$($comment)", $line)
+                $comment++
 			}
 			default {
                 $lastSection = $section
