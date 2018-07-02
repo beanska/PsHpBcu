@@ -166,9 +166,15 @@ function Show-HpBcu {
         }
     }
 }
-function Export-HpBcu {
+function Invoke-HpBcu {
     [cmdletbinding()]
     param (
+        [Parameter(Mandatory=$False, ParameterSetName='Export')]
+        [switch] $Export,
+
+        [Parameter(Mandatory=$False, ParameterSetName='Import')]
+        [switch] $Import,
+
         [Parameter(Mandatory=$True)]
         [string] $BcuPath,
 
@@ -187,10 +193,18 @@ function Export-HpBcu {
 	} else {
 		$bcuExe = "$bcuPath\BiosConfigUtility.exe"
     }
+
+    if ($Export) {
+        $return = Start-Proc $bcuExe @("/Get:$($ConfigFile)") -hidden -waitforexit 
+    } elseif ($Import) {
+        $return = Start-Proc $bcuExe @("/Set:$($ConfigFile)") -hidden -waitforexit 
+    } else {
+        throw "-Import or -Export must be specified."
+    }
     
-    $return = Start-Proc $bcuExe @("/Get:$($ConfigFile)") -hidden -waitforexit 
     write-debug $return.StandardOutput.ReadToEnd()
     write-debug $return.ExitCode
+
 }
 
 function Start-Proc  {
