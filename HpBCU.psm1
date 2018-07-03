@@ -1,30 +1,27 @@
- 
+ function Set-BiosData {
 <#
 .SYNOPSIS
-Generates the folder and file structure needed to create a new Powershell module.
+Makes changes to the settings pulled from the BCU executable.
 .DESCRIPTION
-In order to provide some standardisation, this script will create the necessary folder/file structure for a new Powershell module.
-The structure includes folders for Public and Private functions, creates a basic manifest file and root module loader, and creates a Pester test file for the manifest.
-Once the environment is setup, proper development can begin.  Any public functions to be exported should still be added to the FunctionsToExport array in the manifest file.
-Private functions are those which are internal to the module and are therefore not for public consumption.
-Each public function should have its own test file in the Tests folder.
-.PARAMETER ModuleName
-The name you wish to give the module.  The root folder, manifest, and root loader will be named after the module.
-.PARAMETER Author
-Enter a name to be listed as the Author in the module manifest.
-.PARAMETER Description
-A short description of the module to be listed in the module manifest.
-.PARAMETER PowershellVersion
-The minimum version of Powershell supported by the module.  One of 2.0, 3.0 (the default), 4.0 or 5.0.
-.PARAMETER ModulesPath
-The full path to the directory you wish to develop the module in.  This is where the module structure will be created.
-Include a trailing \ or don't, it doesn't matter.
+Reads the data from BCU utility and makes changes based on the specified section.
+.PARAMETER ConfigFile
+Text file from the BCU that you want to alter.
+.PARAMETER Section
+The section that you wish to alter.
+.PARAMETER Value
+The new value. If section is multiple choice then choice you want to be selected. If an ordered list then use -Order to specify the position (0 based).
+.PARAMETER Order
+For use with sections that are ordered lists (like boot order).
 .EXAMPLE
-New-PSModule.ps1 -ModuleName WackyRaces -Author 'Penelope Pitstop' -Description 'Win the wacky races' -PowershellVersion '4.0' -ModulesPath 'c:\development\powershell-modules'
-Creates a new module structure called WackyRaces in c:\development\powershell-modules\WackyRaces.  The module manifest will require Powershell v4.0.
+# String section
+Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag" -Value "12345678"
+.EXAMPLE
+# Multiple choice section
+Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "TPM State" -Value "Enable"
+.EXAMPLE
+# Ordered List, this make "USB Hard Drive" the first entry in the section.
+Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot Sources" -Value "USB Hard Drive" -Order 0
 #>
-
-function Set-BiosData {
     param (
         [Parameter(Mandatory=$True)]
         [string] $ConfigFile,
@@ -45,9 +42,21 @@ function Set-BiosData {
         write-error "Section ""$Section"" is read only."
     } elseif ($biosData[$Section]){
         if ($biosData[$section].type -eq 'string'){       
-            $oldKey = $biosData['Asset Tag'].data.Keys | Select-Object -First 1
-            $biosData['Asset Tag'].data.Remove($oldKey)
-            $biosData['Asset Tag'].data.Add($Value, $false)
+            $oldKey = $biosData[$section].data.Keys | Select-Object -First 1
+            $biosData[$section].data.Remove($oldKey)
+            $biosData[$section].data.Add($Value, $false)
+        } elseif ($biosData[$section].type -eq 'multipleChoice') {
+            $curSelected = $biosData[$section].data.GetEnumerator() | Where-Object {$_.Value -eq $true} | Select-Object -ExpandProperty Name
+            $biosData[$section].data.$curSelected = $False
+            $biosData[$section].data.$value = $True
+        } elseif ($biosData[$section].type -eq 'orderedList' -and $order -ne $null) {
+            $curPosition = $biosData[$section].data.$value
+            for($i=$order; $i -lt $biosData[$section].data.Count; $i++){
+                if ($i -lt $curPosition){
+                    $biosData[$section].data[$i]++
+                }
+            }
+            $biosData[$section].data.$value = $order
         }
     } else {
         write-error "Section ""$Section"" not found"
@@ -71,18 +80,28 @@ function Write-BiosData {
     }
 
     foreach ($Section in $BiosData.GetEnumerator().Name){
-            if ($Section -like "Comment_*") {
-                $BiosData.$Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
-            } else {
-                $Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+        
+        if ($Section -like "Comment_*") {
+            $BiosData.$Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+        } else {
+            $Section | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+        }
+
+        if ($BiosData[$Section].type -eq 'orderedList'){
+            foreach ($item in $BiosData[$Section].data.GetEnumerator() | Sort Value){
+                "`t$($item.Name)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
             }
-        foreach ($item in $BiosData[$Section].data.keys){
-            if ($BiosData[$Section].data.$item) {
-                "`t`*$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
-            } else {
-                "`t$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+        } else {
+            foreach ($item in $BiosData[$Section].data.keys){
+                if ($BiosData[$Section].data.$item) {
+                    "`t`*$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+                } else {
+                    "`t$($item)" | Out-File -FilePath $ConfigFile -Append -Encoding ASCII
+                }
             }
         }
+
+
     }
 }
 Function Get-BiosData {
@@ -137,6 +156,12 @@ Function Get-BiosData {
                             $biosHash[$lastSection].type = 'multipleChoice'
                         } else {
                             $biosHash[$lastSection].type = 'orderedList'
+                            for($i=0; $i -lt $biosHash[$lastSection].Data.Count; $i++){
+                                $biosHash[$lastSection].Data[$i] = $i
+                            }
+                            <#foreach ($key in $biosHash[$lastSection].Data){
+
+                            }#>
                         }
                     }
                 }             
