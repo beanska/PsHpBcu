@@ -36,7 +36,7 @@ Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot So
         [int32] $Order
     )
 
-    $biosData = Get-BiosData -ConfigFile $ConfigFile -debug
+    $biosData = Get-BiosData -ConfigFile $ConfigFile
 
     if ($biosData[$Section].'read-only'){
         write-error "Section ""$Section"" is read only."
@@ -62,6 +62,36 @@ Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot So
         write-error "Section ""$Section"" not found"
     }
     Write-BiosData -BiosData $biosData -ConfigFile $ConfigFile
+}
+
+function Test-Section {
+<#
+.SYNOPSIS
+Tests if a section exists in the config file.
+.DESCRIPTION
+Will return boolean based on if the given section exists in the config file
+.PARAMETER ConfigFile
+Text file from the BCU that you want to check.
+.PARAMETER Section
+The section that you wish to test for.
+.EXAMPLE
+Test-Section -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag"
+#>
+    param (
+        [Parameter(Mandatory=$True)]
+        [string] $Section,
+
+        [Parameter(Mandatory=$True)]
+        [string] $ConfigFile
+    )
+
+    $biosData = Get-BiosData -ConfigFile $ConfigFile
+
+    if ($biosData[$section] -eq $null){
+        return $false
+    } else {
+        return $true
+    }
 }
 
 function Write-BiosData {
