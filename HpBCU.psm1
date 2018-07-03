@@ -1,4 +1,4 @@
- function Set-BiosData {
+ function Set-HpBcuBiosData {
 <#
 .SYNOPSIS
 Makes changes to the settings pulled from the BCU executable.
@@ -14,13 +14,13 @@ The new value. If section is multiple choice then choice you want to be selected
 For use with sections that are ordered lists (like boot order).
 .EXAMPLE
 # String section
-Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag" -Value "12345678"
+Set-HpBcuBiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag" -Value "12345678"
 .EXAMPLE
 # Multiple choice section
-Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "TPM State" -Value "Enable"
+Set-HpBcuBiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "TPM State" -Value "Enable"
 .EXAMPLE
 # Ordered List, this make "USB Hard Drive" the first entry in the section.
-Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot Sources" -Value "USB Hard Drive" -Order 0
+Set-HpBcuBiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot Sources" -Value "USB Hard Drive" -Order 0
 #>
     param (
         [Parameter(Mandatory=$True)]
@@ -36,7 +36,7 @@ Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot So
         [int32] $Order
     )
 
-    $biosData = Get-BiosData -ConfigFile $ConfigFile
+    $biosData = Get-HpBcuBiosData -ConfigFile $ConfigFile
 
     if ($biosData[$Section].'read-only'){
         write-error "Section ""$Section"" is read only."
@@ -61,10 +61,10 @@ Set-BiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Boot So
     } else {
         write-error "Section ""$Section"" not found"
     }
-    Write-BiosData -BiosData $biosData -ConfigFile $ConfigFile
+    Write-HpBcuBiosData -BiosData $biosData -ConfigFile $ConfigFile
 }
 
-function Test-Section {
+function Test-HpBcuSection {
 <#
 .SYNOPSIS
 Tests if a section exists in the config file.
@@ -75,7 +75,7 @@ Text file from the BCU that you want to check.
 .PARAMETER Section
 The section that you wish to test for.
 .EXAMPLE
-Test-Section -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag"
+Test-HpBcuSection -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag"
 #>
     param (
         [Parameter(Mandatory=$True)]
@@ -85,7 +85,7 @@ Test-Section -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag"
         [string] $ConfigFile
     )
 
-    $biosData = Get-BiosData -ConfigFile $ConfigFile
+    $biosData = Get-HpBcuBiosData -ConfigFile $ConfigFile
 
     if ($biosData[$section] -eq $null){
         return $false
@@ -94,7 +94,7 @@ Test-Section -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset Tag"
     }
 }
 
-function Write-BiosData {
+function Write-HpBcuBiosData {
     param (
         [Parameter(Mandatory=$True)]
         [string] $ConfigFile,
@@ -134,7 +134,7 @@ function Write-BiosData {
 
     }
 }
-Function Get-BiosData {
+Function Get-HpBcuBiosData {
     param (
         [Parameter(Mandatory=$True)]
         [string] $ConfigFile
@@ -207,7 +207,7 @@ Function Get-BiosData {
     return $biosHash
 }
 
-function Show-HpBcu {
+function Show-HpBcuData {
     param (
         [Parameter(Mandatory=$True)]
         [System.Collections.Specialized.OrderedDictionary] $BiosData
@@ -250,9 +250,9 @@ function Invoke-HpBcu {
     }
 
     if ($Export) {
-        $return = Start-Proc $bcuExe @("/Get:$($ConfigFile)") -hidden -waitforexit 
+        $return = Start-HpBcuProc $bcuExe @("/Get:$($ConfigFile)") -hidden -waitforexit 
     } elseif ($Import) {
-        $return = Start-Proc $bcuExe @("/Set:$($ConfigFile)") -hidden -waitforexit 
+        $return = Start-HpBcuProc $bcuExe @("/Set:$($ConfigFile)") -hidden -waitforexit 
     } else {
         throw "-Import or -Export must be specified."
     }
@@ -262,7 +262,7 @@ function Invoke-HpBcu {
 
 }
 
-function Start-Proc  {
+function Start-HpBcuProc  {
     param (
        [string]$exe = $(Throw "An executable must be specified"),
        [string]$arguments,
