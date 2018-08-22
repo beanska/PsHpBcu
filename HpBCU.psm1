@@ -311,3 +311,12 @@ function Start-HpBcuProc  {
    if ($waitforexit) {$process.WaitForExit()}
    return $process
 }
+
+function Check-HpWmiNamespaceExists {
+    Try {
+        $classes = Get-WmiObject -Namespace root\HP\InstrumentedBIOS -List -ErrorAction Stop
+        return $true
+    } Catch {
+        return $false
+    }
+}
