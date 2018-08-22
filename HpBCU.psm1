@@ -1,4 +1,6 @@
- function Set-HpBcuBiosData {
+$log = "$($env:temp)\HpBCU.log"
+
+function Set-HpBcuBiosData {
 <#
 .SYNOPSIS
 Makes changes to the settings pulled from the BCU executable.
@@ -61,6 +63,7 @@ Set-HpBcuBiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "UEFI Bo
     } else {
         write-error "Section ""$Section"" not found"
     }
+    "Writing config file $ConfigFile" | out-file $log -Append
     Write-HpBcuBiosData -BiosData $biosData -ConfigFile $ConfigFile
 }
 
@@ -95,6 +98,16 @@ Test-HpBcuSection -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -Section "Asset T
 }
 
 function Write-HpBcuBiosData {
+<#
+.SYNOPSIS
+Writes bios settings to text file for importing by HP BCU
+.PARAMETER ConfigFile
+Text file from the BCU that you want to write out.
+.PARAMETER BiosData
+The data to be written in an ordere hashtable.
+.EXAMPLE
+Write-HpBcuBiosData -ConfigFile "$PSScriptRoot\New_HPConfig.txt" -BiosData $BiosData
+#>
     param (
         [Parameter(Mandatory=$True)]
         [string] $ConfigFile,
@@ -230,18 +243,15 @@ function Invoke-HpBcu {
         [Parameter(Mandatory=$False, ParameterSetName='Import')]
         [switch] $Import,
 
-        [Parameter(Mandatory=$True)]
-        [string] $BcuPath,
+        [Parameter(Mandatory=$False)]
+        [string] $BcuPath = $PSScriptRoot,
 
         [Parameter(Mandatory=$True)]
-        [string] $ConfigFile
+        [string] $ConfigFile,
+
+        [Parameter(Mandatory=$False)]
+        [string] $BcuLog = "$($env:temp)\BcuExe.log"
     )
-
-    if ( (test-path "$BcuPath\BiosConfigUtility64.exe") -and (test-path "$BcuPath\BiosConfigUtility.exe") ){
-        Write-Information ""
-    } else {
-        Throw "Cannot find HP Bios Configuration Utility executables in path ""$BcuPath""."
-    }
 
     if ((Get-WmiObject Win32_OperatingSystem).OSArchitecture -eq "64-bit"){
 		$bcuExe = "$bcuPath\BiosConfigUtility64.exe"
@@ -249,10 +259,26 @@ function Invoke-HpBcu {
 		$bcuExe = "$bcuPath\BiosConfigUtility.exe"
     }
 
+    if ( test-path "FILESYSTEM::$bcuExe" ){
+        "BCU is ""$bcuExe""" | out-file $log -Append
+    } else {
+        "Cannot find ""$bcuExe""" | out-file $log -Append
+        Throw "Cannot find HP Bios Configuration Utility executables in path ""$bcuExe""."
+    }
+
     if ($Export) {
-        $return = Start-HpBcuProc $bcuExe @("/Get:$($ConfigFile)") -hidden -waitforexit 
+        $return = Start-HpBcuProc $bcuExe @("/Get:$($ConfigFile)") -hidden -waitforexit
+        "BCU export returned:$($return.ExitCode)" | out-file $log -Append
+        if (!(test-path $ConfigFile)){
+            "BCU was unable to generate $ConfigFile" | out-file $log -Append
+        }
     } elseif ($Import) {
-        $return = Start-HpBcuProc $bcuExe @("/Set:$($ConfigFile)") -hidden -waitforexit 
+        if (!(test-path $ConfigFile)){
+            "BCU was unable to find $ConfigFile" | out-file $log -Append
+        } else {
+            $return = Start-HpBcuProc $bcuExe @("/Set:$($ConfigFile)") -hidden -waitforexit 
+            "BCU import returned:$($return.ExitCode)" | out-file $log -Append
+        }
     } else {
         throw "-Import or -Export must be specified."
     }
@@ -269,7 +295,7 @@ function Start-HpBcuProc  {
        [switch]$hidden,
        [switch]$waitforexit
    )    
-
+    "Running $exe $arguments" | out-file $log -Append
    # Build Startinfo and set options according to parameters
    $startinfo = new-object System.Diagnostics.ProcessStartInfo
    $startinfo.FileName = $exe
